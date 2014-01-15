@@ -25,8 +25,7 @@ public class Dbapi {
 	
 	
 	public static Connection connect() throws Exception
-	{
-	
+	{	
 		return( DriverManager.getConnection(url, userName, password));
 	}
 	public static String getErrorMessage(Exception e)
