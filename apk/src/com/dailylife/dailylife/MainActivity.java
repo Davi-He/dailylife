@@ -2,6 +2,8 @@ package com.dailylife.dailylife;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -18,6 +20,25 @@ public class MainActivity extends Activity {
 	private ListView lvListView = null;
 	private EditText eText = null;
 	private Connection conn = null;
+	public Handler mHandle = new Handler() {
+		@Override
+		public void handleMessage(Message msg) {
+			Log.i(TAG, "handleMessage :" + msg.what);
+			switch (msg.what) {
+			case 0:
+				Toast.makeText(getApplicationContext(), "connect err",
+						Toast.LENGTH_SHORT).show();
+				break;
+			case 1:
+				Toast.makeText(getApplicationContext(), "connected",
+						Toast.LENGTH_SHORT).show();
+				break;
+
+			default:
+				break;
+			}
+		}
+	};
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -27,27 +48,7 @@ public class MainActivity extends Activity {
 		lvListView = (ListView) this.findViewById(R.id.in);
 		eText = (EditText) this.findViewById(R.id.edit_text_out);
 
-		// // try {
-		new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					conn = Dbapi.connect();
-				} catch (Exception e) {
-					Dbapi.printErrorMessage(e);
-					e.printStackTrace();
-				}
-			}
-		});
-		Log.i(TAG, "connect mysql ok!");
-		// } catch (Exception e) {
-		// // TODO Auto-generated catch block
-		// // Dbapi.printErrorMessage(e);
-		// e.printStackTrace();
-		// Toast.makeText(getApplicationContext(), "connect err",
-		// Toast.LENGTH_SHORT).show();
-		// }
+		// connectServer();
 
 		sendBtn.setOnClickListener(new View.OnClickListener() {
 
@@ -55,41 +56,42 @@ public class MainActivity extends Activity {
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
 				Log.i(TAG, "===============onClick!");
-				if (conn == null) {
+				// mHandle.sendEmptyMessage(1);
+				if (eText.getText() != null) {
+					// Dbapi.sendMessage(conn, eText.getText().toString());
 					new Thread(new Runnable() {
-
+						
 						@Override
 						public void run() {
-							try {
-								conn = Dbapi.connect();
-							} catch (Exception e) {
-								Dbapi.printErrorMessage(e);
-								e.printStackTrace();
-							}
+							// TODO Auto-generated method stub
+							Dbapi.getMessage();
 						}
-					});
+					}).start();
+					// try {
+					// Dbapi.getres(conn);
+					// } catch (SQLException e) {
+					// // TODO Auto-generated catch block
+					// e.printStackTrace();
+					// }
 				}
-				if (conn == null) {
-					Toast.makeText(getApplicationContext(), "connect err",
-							Toast.LENGTH_SHORT).show();
-				}
-
 			}
 		});
 	}
 
-	private static void connectServer() {
+	private void connectServer() {
 		new Thread(new Runnable() {
 
 			@Override
 			public void run() {
 				try {
-					//conn = Dbapi.connect();
+					conn = Dbapi.connect();
+					mHandle.sendEmptyMessage(1);
 				} catch (Exception e) {
-					Dbapi.printErrorMessage(e);
+					mHandle.sendEmptyMessage(0);
+					// Dbapi.printErrorMessage(e);
 					e.printStackTrace();
 				}
 			}
-		});
+		}).start();
 	}
 }
