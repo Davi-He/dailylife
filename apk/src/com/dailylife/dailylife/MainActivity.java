@@ -6,12 +6,15 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends Activity {
 	// private Bundle
@@ -19,7 +22,8 @@ public class MainActivity extends Activity {
 	private Button sendBtn = null;
 	private ListView lvListView = null;
 	private EditText eText = null;
-	private Connection conn = null;
+	private ArrayAdapter<String> arrayAdapter;
+	private List<String> listStrings;
 	public Handler mHandle = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
@@ -49,6 +53,11 @@ public class MainActivity extends Activity {
 		eText = (EditText) this.findViewById(R.id.edit_text_out);
 
 		// connectServer();
+		listStrings = new ArrayList<String>();
+		arrayAdapter = new ArrayAdapter<String>(this,
+				android.R.layout.simple_expandable_list_item_1, getData());
+		lvListView.setAdapter(arrayAdapter);
+		// setContentView(lvListView);
 
 		sendBtn.setOnClickListener(new View.OnClickListener() {
 
@@ -57,41 +66,32 @@ public class MainActivity extends Activity {
 				// TODO Auto-generated method stub
 				Log.i(TAG, "===============onClick!");
 				// mHandle.sendEmptyMessage(1);
-				if (eText.getText() != null) {
+				if (!"".equals(eText.getText().toString().trim())) {
+					Log.i(TAG, "===============send message! :"
+							+ eText.getText().toString());
 					// Dbapi.sendMessage(conn, eText.getText().toString());
+					listStrings.add(eText.getText().toString());
+					arrayAdapter.notifyDataSetChanged();
+
 					new Thread(new Runnable() {
-						
 						@Override
 						public void run() {
 							// TODO Auto-generated method stub
-							Dbapi.getMessage();
+							// Dbapi.getMessage();
+							Dbapi.sendMessage(eText.getText().toString(),
+									MainActivity.this);
+							// Dbapi.getMessage();
+							// ListView.
 						}
 					}).start();
-					// try {
-					// Dbapi.getres(conn);
-					// } catch (SQLException e) {
-					// // TODO Auto-generated catch block
-					// e.printStackTrace();
-					// }
+					eText.setText("");
 				}
 			}
 		});
 	}
 
-	private void connectServer() {
-		new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					conn = Dbapi.connect();
-					mHandle.sendEmptyMessage(1);
-				} catch (Exception e) {
-					mHandle.sendEmptyMessage(0);
-					// Dbapi.printErrorMessage(e);
-					e.printStackTrace();
-				}
-			}
-		}).start();
+	private List<String> getData() {
+		listStrings.add("1");
+		return listStrings;
 	}
 }
