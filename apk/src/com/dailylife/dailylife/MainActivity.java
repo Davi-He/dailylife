@@ -72,26 +72,46 @@ public class MainActivity extends Activity {
 					// Dbapi.sendMessage(conn, eText.getText().toString());
 					listStrings.add(eText.getText().toString());
 					arrayAdapter.notifyDataSetChanged();
-
+					final String msg = eText.getText().toString();
+					eText.setText("");
 					new Thread(new Runnable() {
 						@Override
 						public void run() {
 							// TODO Auto-generated method stub
 							// Dbapi.getMessage();
-							Dbapi.sendMessage(eText.getText().toString(),
-									MainActivity.this);
+							Dbapi.sendMessage(msg,
+									MainActivity.this, 0, 0);
 							// Dbapi.getMessage();
 							// ListView.
 						}
 					}).start();
-					eText.setText("");
+					
 				}
 			}
 		});
 	}
 
 	private List<String> getData() {
-		listStrings.add("1");
+		try {
+			ResultSet rs = Dbapi.getMessage();
+			int count = 0;
+			while (rs.next()) {
+				listStrings.add(rs.getString("sendtime") + ":"
+						+ rs.getString("message"));
+				int userid = rs.getInt("userid");
+				String sendtime = rs.getString("sendtime");
+				 System.out.println(",userid: " +
+				 userid
+				 + ",sendtime" + sendtime);
+				++count;
+			}
+			rs.close();
+
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+
+		// s.close();
 		return listStrings;
 	}
 }

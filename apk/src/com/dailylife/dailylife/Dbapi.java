@@ -33,25 +33,28 @@ public class Dbapi {
 		return (DriverManager.getConnection(url, userName, password));
 	}
 
-	public static void sendMessage(String msg, Context context) {
+	public static void sendMessage(String msg, Context context, int fromUser,
+			int toUser) {
 		Location mLocation = getLocation(context);
 		try {
-			String sql = "INSERT INTO chat (userid,sendtime,message,where_lon,where_lat,where_type) VALUES(?,?,?,?,?,?)";
+			String sql = "INSERT INTO chat (userid,sendtime,message,where_lon,where_lat,where_type,to_userid) VALUES(?,?,?,?,?,?,?)";
 			System.out.println("sendMessage:" + msg);
 			java.util.Date date = new java.util.Date();
 			Timestamp tt = new Timestamp(date.getTime());
 
 			// Statement s = conn.createStatement();
 			PreparedStatement s = connect().prepareStatement(sql);
-			s.setInt(1, 0);
+			s.setInt(1, fromUser);
 			s.setTimestamp(2, tt);
 			s.setString(3, msg);
 			s.setDouble(4, mLocation.getLongitude());
 			s.setDouble(5, mLocation.getLatitude());
 			s.setInt(6, LocationType);
+			s.setInt(7, toUser);
+
 			s.execute();
-			//ResultSet rs = s.getResultSet();
-			//rs.close();
+			// ResultSet rs = s.getResultSet();
+			// rs.close();
 			s.close();
 		} catch (Exception e) {
 			// Dbapi.printErrorMessage(e);
@@ -59,30 +62,23 @@ public class Dbapi {
 		}
 	}
 
-	public static String getMessage() {
+	public static ResultSet getMessage() {
+		Statement st;
+		ResultSet rs = null;
+		String sql = "select * from chat order by id desc limit 20 ";
 		try {
-			String sql = "SELECT * from chat";
-			PreparedStatement s = connect().prepareStatement(sql);
-			s.executeQuery();
+			st = connect().createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
+					ResultSet.CONCUR_UPDATABLE);
+			// PreparedStatement s = connect().prepareStatement(sql);
+			rs = st.executeQuery(sql);
 			// s.execute();
-			ResultSet rs = s.getResultSet();
-			int count = 0;
-			while (rs.next()) {
-				String message = rs.getString("message");
-				int userid = rs.getInt("userid");
-				String sendtime = rs.getString("sendtime");
-				System.out.println("message: " + message + ",userid: " + userid
-						+ ",sendtime" + sendtime);
-				++count;
-			}
-			rs.close();
-			s.close();
-			System.out.println("Number of rows returned: " + count);
+			// rs = st.getResultSet();
+
 		} catch (Exception e) {
 			// Dbapi.printErrorMessage(e);
 			e.printStackTrace();
 		}
-		return null;
+		return rs;
 	}
 
 	public static ResultSet getres(Connection conn) throws SQLException {
@@ -132,7 +128,7 @@ public class Dbapi {
 				.getSystemService(Context.LOCATION_SERVICE);
 		Location location = locMan
 				.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-		LocationType =0;
+		LocationType = 0;
 		if (location == null) {
 			LocationType = 1;
 			location = locMan
