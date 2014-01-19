@@ -81,32 +81,6 @@ public class Dbapi {
 		return rs;
 	}
 
-	public static ResultSet getres(Connection conn) throws SQLException {
-		Statement stmt;
-		ResultSet rs;
-		stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
-				ResultSet.CONCUR_UPDATABLE);
-		try {
-			rs = stmt.executeQuery("select * from users");
-			int count = 0;
-			while (rs.next()) {
-				String mail = rs.getString("mail");
-				int id = rs.getInt("id");
-				int admin = rs.getInt("admin");
-				System.out.println("mail: " + mail + ",id: " + id + ",admin: "
-						+ admin);
-				++count;
-			}
-			rs.close();
-			stmt.close();
-			return rs;
-		} catch (Exception e) {
-			rs = null;
-			System.out.println("Êý¾Ý¿â²éÑ¯Ê§°Ü");
-		}
-		return rs;
-	}
-
 	public static String getErrorMessage(Exception e) {
 		StringBuffer s = new StringBuffer();
 		if (e instanceof SQLException) {
